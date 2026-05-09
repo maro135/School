@@ -16,6 +16,7 @@ import Countdown from 'react-countdown';
 import { toast } from 'sonner';
 import { addDoc, collection, serverTimestamp, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import { handleFirestoreError, OperationType } from '../lib/errorHandling';
 import { useAuthStore } from '../store/useAuthStore';
 import { Question, Exam } from '../types';
 
@@ -100,22 +101,29 @@ export default function ExamEngine() {
         createdAt: serverTimestamp(),
       };
 
-      const docRef = await addDoc(collection(db, 'submissions'), submission);
+      const docRef = await addDoc(collection(db, 'submissions'), submission).catch(e => {
+        handleFirestoreError(e, OperationType.CREATE, 'submissions');
+      });
       
       // Update user stats (simplified)
-      if (user) {
+      if (user && docRef) {
          await updateDoc(doc(db, 'users', user.uid), {
            xp: increment(percentage >= 50 ? 200 : 50),
            coins: increment(percentage >= 90 ? 50 : 10),
            totalExams: increment(1),
            updatedAt: serverTimestamp()
+         }).catch(e => {
+           handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`);
          });
       }
 
+      // @ts-ignore
       toast.success('تم تسليم الاختبار بنجاح!');
+      // @ts-ignore
       navigate(`/result/${docRef.id}`);
     } catch (error: any) {
-      toast.error('حدث خطأ أثناء التسليم: ' + error.message);
+      // toast is fine for displaying the JSON error
+      toast.error('حدث خطأ أثناء التسليم');
     } finally {
       setIsSubmitting(false);
     }

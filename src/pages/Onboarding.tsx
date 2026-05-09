@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
+import { handleFirestoreError, OperationType } from '../lib/errorHandling';
 import { useAuthStore } from '../store/useAuthStore';
 import { toast } from 'sonner';
 import { User, GraduationCap, MapPin, School, Book, ChevronRight, Check, Zap } from 'lucide-react';
@@ -54,11 +55,13 @@ export default function Onboarding() {
         photoURL: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`
       };
 
-      await setDoc(doc(db, 'users', user.uid), profile);
+      await setDoc(doc(db, 'users', user.uid), profile).catch(e => {
+        handleFirestoreError(e, OperationType.CREATE, `users/${user.uid}`);
+      });
       toast.success('تم إعداد حسابك بنجاح! مرحباً بك.');
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error('خطأ: ' + error.message);
+      toast.error('حدث خطأ أثناء إعداد الحساب');
     }
   };
 

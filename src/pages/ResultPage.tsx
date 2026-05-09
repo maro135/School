@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, NavLink, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
+import { handleFirestoreError, OperationType } from '../lib/errorHandling';
 import { Submission } from '../types';
 import { motion } from 'motion/react';
 import { 
@@ -28,9 +29,13 @@ export default function ResultPage() {
   useEffect(() => {
     async function fetchResult() {
       if (!submissionId) return;
-      const snap = await getDoc(doc(db, 'submissions', submissionId));
-      if (snap.exists()) {
-        setSubmission(snap.data() as Submission);
+      try {
+        const snap = await getDoc(doc(db, 'submissions', submissionId));
+        if (snap.exists()) {
+          setSubmission(snap.data() as Submission);
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.GET, `submissions/${submissionId}`);
       }
       setLoading(false);
     }
