@@ -1,12 +1,11 @@
 import { create } from 'zustand';
-import { User } from 'firebase/auth';
 import { UserProfile } from '../types';
 
 interface AuthState {
-  user: User | null;
+  user: { uid: string; email: string | null } | null;
   profile: UserProfile | null;
   loading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: { uid: string; email: string | null } | null) => void;
   setProfile: (profile: UserProfile | null) => void;
   setLoading: (loading: boolean) => void;
 }

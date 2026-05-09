@@ -28,7 +28,7 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      setUser(user ? { uid: user.uid, email: user.email } : null);
       
       if (user) {
         // Listen to profile changes
