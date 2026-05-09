@@ -1,0 +1,14 @@
+{
+  "name": "Thanaweya Elite",
+  "description": "A premium Egyptian Thanaweya Amma exam and revision platform with AI assistance, competitive rankings, and personalized study tracking.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI Study Assistant",
+    "Real-time Leaderboards",
+    "Dynamic Exam Engine",
+    "Arabic RTL Support"
+  ]
+}

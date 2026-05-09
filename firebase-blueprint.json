@@ -1,0 +1,110 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Student profile information and statistics",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "bio": { "type": "string" },
+        "grade": { "type": "string", "enum": ["1st Secondary", "2nd Secondary", "3rd Secondary"] },
+        "section": { "type": "string", "enum": ["Scientific Science", "Scientific Math", "Literary"] },
+        "school": { "type": "string" },
+        "governorate": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "xp": { "type": "number" },
+        "streak": { "type": "number" },
+        "coins": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "totalExams": { "type": "number" },
+        "rank": { "type": "number" },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "isPublic": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "username", "grade", "createdAt"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Definition of a test or competitive quiz",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "duration": { "type": "number", "description": "Duration in minutes" },
+        "type": { "type": "string", "enum": ["Mock", "Subjective", "Competitive", "AI-Generated"] },
+        "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard"] },
+        "questionsCount": { "type": "number" },
+        "xpReward": { "type": "number" },
+        "coinReward": { "type": "number" }
+      }
+    },
+    "Question": {
+      "title": "Question",
+      "description": "Individual question within an exam",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["MCQ", "TF", "Multi-Select"] },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswer": { "type": "string" },
+        "explanation": { "type": "string" },
+        "imageURL": { "type": "string" }
+      }
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Student exam results",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "examId": { "type": "string" },
+        "score": { "type": "number" },
+        "percentage": { "type": "number" },
+        "timeTaken": { "type": "number" },
+        "answers": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User notifications",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Educational subject info",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "color": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/exams/{examId}": { "schema": "Exam", "description": "Available exams" },
+    "/exams/{examId}/questions/{questionId}": { "schema": "Question", "description": "Questions in an exam" },
+    "/submissions/{submissionId}": { "schema": "Submission", "description": "Exam results" },
+    "/notifications/{notifId}": { "schema": "Notification", "description": "Notifications" },
+    "/subjects/{subjectId}": { "schema": "Subject", "description": "Subject metadata" }
+  }
+}

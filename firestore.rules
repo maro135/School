@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == request.auth.uid &&
+               data.name is string && data.name.size() >= 2 && data.name.size() <= 50 &&
+               data.username is string && data.username.matches('^[a-z0-9_]+$') &&
+               data.grade in ['1st Secondary', '2nd Secondary', '3rd Secondary'] &&
+               (data.section == null || data.section in ['Scientific Science', 'Scientific Math', 'Literary']);
+      }
+
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'username', 'bio', 'grade', 'section', 'school', 'governorate', 'photoURL', 'isPublic', 'updatedAt'])
+      );
+      // Streak, XP etc should ideally be updated via backend but if client-side, we need careful rules.
+      // For this applet, we might allow XP updates but strictly controlled.
+      allow update: if isOwner(userId) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['xp', 'coins', 'streak', 'accuracy', 'totalExams', 'updatedAt'])
+      );
+    }
+
+    // Username Uniqueness check (requires a separate collection or specific structure)
+    // We'll use a 'usernames' collection for atomic checks.
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn();
+    }
+
+    // Exam Rules
+    match /exams/{examId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Only via Admin (manual for now)
+    }
+
+    match /exams/{examId}/questions/{questionId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Submission Rules
+    match /submissions/{submissionId} {
+      function isValidSubmission(data) {
+        return data.userId == request.auth.uid &&
+               data.examId is string &&
+               data.score is number &&
+               data.createdAt == request.time;
+      }
+
+      allow read: if isOwner(existing().userId);
+      allow create: if isSignedIn() && isValidSubmission(incoming());
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Notification Rules
+    match /notifications/{notifId} {
+      allow read, update: if isOwner(existing().userId);
+      allow create: if false; // System only
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Subject Metadata
+    match /subjects/{subjectId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}
